@@ -1,10 +1,18 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 0.0.0.0;
 
+// Render provides the PORT automatically
+const PORT = process.env.PORT || 3000;
+
+// Basic route so Render + Uptime checks pass
 app.get('/', (req, res) => {
-  res.send('Bot is running!');
+  res.send('WhatsApp Voicemail Bot is running ✅');
 });
 
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+// IMPORTANT: bind to 0.0.0.0
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
+
 
