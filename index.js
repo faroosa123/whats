@@ -1,7 +1,10 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
+// start web server
 require('./server');
+
+let voicemailOn = false;
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -9,14 +12,16 @@ const client = new Client({
     headless: true,
     args: [
       '--no-sandbox',
-      '--disable-setuid-sandbox'
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu'
     ]
   }
 });
 
 client.on('qr', qr => {
+  console.log('QR CODE RECEIVED');
   qrcode.generate(qr, { small: true });
-  console.log('QR RECEIVED — scan it');
 });
 
 client.on('ready', () => {
@@ -26,18 +31,19 @@ client.on('ready', () => {
 client.on('message', async msg => {
   const chat = await msg.getChat();
 
+  // commands ONLY from your own account
   if (msg.fromMe) {
     if (msg.body === '/voicemail on') {
-      global.voicemailOn = true;
+      voicemailOn = true;
       return msg.reply('Voicemail ON ✅');
     }
     if (msg.body === '/voicemail off') {
-      global.voicemailOn = false;
+      voicemailOn = false;
       return msg.reply('Voicemail OFF ❌');
     }
   }
 
-  if (!global.voicemailOn) return;
+  if (!voicemailOn) return;
 
   if (chat.isGroup) {
     if (!msg.mentionedIds.includes(client.info.wid._serialized)) return;
@@ -47,4 +53,3 @@ client.on('message', async msg => {
 });
 
 client.initialize();
-
