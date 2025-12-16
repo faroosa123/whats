@@ -1,47 +1,50 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
-let voicemailOn = false; // voicemail toggle
-const VOICEMAIL_MESSAGE = "Fares isn't here right now. Try texting later";
+// 🔥 IMPORTANT: this line makes the bot run
+require('./server');
+
+let voicemailOn = false;
+const VOICEMAIL_MESSAGE =
+  "Fares isn't here right now. Try texting later";
 
 const client = new Client({
-    authStrategy: new LocalAuth(),
+  authStrategy: new LocalAuth(),
 });
 
 client.on('qr', qr => {
-    qrcode.generate(qr, { small: true });
-    console.log("Scan this QR code with WhatsApp!");
+  qrcode.generate(qr, { small: true });
+  console.log('Scan QR');
 });
 
 client.on('ready', () => {
-    console.log('WhatsApp bot is ready!');
+  console.log('WhatsApp bot READY');
 });
 
 client.on('message', async msg => {
-    const chat = await msg.getChat();
+  const chat = await msg.getChat();
 
-    // Command to toggle voicemail
-    if (msg.body.toLowerCase() === '/voicemail on') {
-        voicemailOn = true;
-        msg.reply('Voicemail is now ON ✅');
-        return;
+  // ✅ commands FROM YOUR OWN ACCOUNT
+  if (msg.fromMe) {
+    if (msg.body === '/voicemail on') {
+      voicemailOn = true;
+      await msg.reply('Voicemail ON ✅');
+      return;
     }
-    if (msg.body.toLowerCase() === '/voicemail off') {
-        voicemailOn = false;
-        msg.reply('Voicemail is now OFF ❌');
-        return;
+    if (msg.body === '/voicemail off') {
+      voicemailOn = false;
+      await msg.reply('Voicemail OFF ❌');
+      return;
     }
+  }
 
-    // Only respond if voicemail is on
-    if (!voicemailOn) return;
+  if (!voicemailOn) return;
 
-    // Ignore groups unless mentioned
-    if (chat.isGroup) {
-        if (!msg.mentionedIds.includes(client.info.wid._serialized)) return;
-    }
+  if (chat.isGroup) {
+    if (!msg.mentionedIds.includes(client.info.wid._serialized)) return;
+  }
 
-    // Send voicemail message
-    msg.reply(VOICEMAIL_MESSAGE);
+  await msg.reply(VOICEMAIL_MESSAGE);
 });
 
 client.initialize();
